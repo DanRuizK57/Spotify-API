@@ -23,14 +23,10 @@ router.post('/login', login);
 
 router.get('/profile/:userId', auth , profile);
 
-// router.get('/list/:page?', auth , list);
-
 router.put('/update', auth , update);
 
 router.post('/upload', [auth, uploads.single("file0")], upload);
 
 router.get('/avatar/:file', showAvatar);
-
-// router.get('/counters/:userId', auth , counters);
 
 export default router;
