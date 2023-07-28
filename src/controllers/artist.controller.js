@@ -1,5 +1,7 @@
 import ArtistModel from "../models/artist.model.js";
 import pagination from "mongoose-pagination";
+import fs from "fs";
+import path from "path";
 
 async function save(req, res) {
   try {
@@ -149,4 +151,79 @@ async function remove(req, res) {
   }
 }
 
-export { save, getArtist, list, update, remove };
+async function upload(req, res) {
+
+    // Recoger el fichero de imagen y comprobar que existe
+    if (!req.file) {
+      return res.status(404).send({
+        status: "error",
+        message: "La solicitud requiere una imagen!",
+      });
+    }
+  
+    // Conseguir en nombre del archivo
+    let image = req.file.originalname;
+  
+    // Obtener la extensión del archivo
+    const imageSplit = image.split("\.");
+    const extension = imageSplit[1];
+  
+    // Comprobar la extensión
+    if (extension != "png" && extension != "jpg"
+      && extension != "jpeg" && extension != "gif") {
+        
+        const filePath = req.file.path;
+        // Borrar archivo
+        const fileDeleted = fs.unlinkSync(filePath);
+  
+        return res.status(400).send({
+          status: "error",
+          message: "Extensión del fichero inválida!",
+        });
+  
+      }
+  
+    // Si es correcta, guardar en la BBDD
+    const artistUpdated = await ArtistModel.findByIdAndUpdate(req.params.artistId, { image: req.file.filename }, { new: true });
+  
+    if (!artistUpdated) {
+      return res.status(500).send({ 
+        status: "error",
+        message: "Ha ocurrido un error en la base de datos" 
+      });
+    }
+  
+    return res.status(200).send({
+      status: "success",
+      message: "Imagen subida correctamente!",
+      artist: artistUpdated,
+      file: req.file
+    });
+  
+  
+}
+
+function showImage(req, res) {
+  
+    const file = req.params.file;
+  
+    const filePath = "./uploads/artists/" + file;
+    
+    // Comprobar que existe 
+    fs.stat(filePath, (error, exists) => {
+  
+      if (!exists) {
+        return res.status(404).send({
+          status: "error",
+          message: "No existe la imagen!",
+        });
+      }
+  
+      // Devolver imagen
+      return res.sendFile(path.resolve(filePath));
+  
+    })
+  
+  }
+
+export { save, getArtist, list, update, remove, upload, showImage };
