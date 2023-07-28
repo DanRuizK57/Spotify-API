@@ -1,4 +1,5 @@
 import ArtistModel from "../models/artist.model.js";
+import pagination from "mongoose-pagination";
 
 async function save(req, res) {
   try {
@@ -15,8 +16,6 @@ async function save(req, res) {
       status: "success",
       artist: artist,
     });
-
-
   } catch (err) {
     return res
       .status(500)
@@ -25,33 +24,69 @@ async function save(req, res) {
 }
 
 async function getArtist(req, res) {
+  try {
+    // Obtener ID de artista
+    const artistId = req.params.artistId;
 
-    try {
+    // Buscar en BBDD
+    let artist = await ArtistModel.findById(artistId);
 
-        // Obtener ID de artista
-        const artistId = req.params.artistId;
-
-        // Buscar en BBDD
-        let artist = await ArtistModel.findById(artistId);
-
-        if (!artist) {
-            return res.status(500).send({
-                status: "error",
-                message: "Artista no encontrado",
-              });
-        }
-
-        return res.status(200).send({
-            status: "success",
-            artist: artist,
-          });
-        
-    } catch (err) {
-        return res
-          .status(500)
-          .send({ error: "Ha ocurrido un error en la base de datos" });
+    if (!artist) {
+      return res.status(500).send({
+        status: "error",
+        message: "Artista no encontrado",
+      });
     }
 
+    return res.status(200).send({
+      status: "success",
+      artist: artist,
+    });
+  } catch (err) {
+    return res
+      .status(500)
+      .send({ error: "Ha ocurrido un error en la base de datos" });
+  }
 }
 
-export { save, getArtist };
+async function list(req, res) {
+  try {
+    // Controlar en que página estamos
+    let page = 1;
+
+    if (req.params.page) {
+      page = parseInt(req.params.page);
+    }
+
+    // Consulta con mongoose paginate
+    let itemsPerPage = 2;
+
+    const artists = await ArtistModel.find()
+      .sort("name")
+      .paginate(page, itemsPerPage);
+
+    if (!artists) {
+      return res.status(404).send({
+        status: "error",
+        message: "No hay artistas disponibles",
+      });
+    }
+
+    const totalArtists = await ArtistModel.countDocuments({}).exec();
+
+    return res.status(200).send({
+      status: "success",
+      artists,
+      page,
+      itemsPerPage,
+      totalArtists,
+      pages: Math.ceil(totalArtists / itemsPerPage),
+    });
+  } catch (err) {
+    return res
+      .status(500)
+      .send({ error: "Ha ocurrido un error en la base de datos" });
+  }
+}
+
+export { save, getArtist, list };
