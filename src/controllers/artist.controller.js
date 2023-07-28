@@ -90,7 +90,7 @@ async function list(req, res) {
 }
 
 async function update(req, res) {
-
+  try {
     // Obtener ID del artista
     const artistId = req.params.artistId;
 
@@ -98,20 +98,55 @@ async function update(req, res) {
     const data = req.body;
 
     // Buscar y actualizar artista
-    let artistUpdated = await ArtistModel.findByIdAndUpdate(artistId, data, { new: true });
+    let artistUpdated = await ArtistModel.findByIdAndUpdate(artistId, data, {
+      new: true,
+    });
 
     if (!artistUpdated) {
+      return res.status(500).send({
+        status: "error",
+        message: "El artista no se ha podido actualizar",
+      });
+    }
+
+    return res.status(200).send({
+      status: "success",
+      artist: artistUpdated,
+    });
+  } catch (err) {
+    return res
+      .status(500)
+      .send({ error: "Ha ocurrido un error en la base de datos" });
+  }
+}
+
+async function remove(req, res) {
+  try {
+
+    // Obtener ID del artista
+    const artistId = req.params.artistId;
+
+    const artistRemoved = await ArtistModel.findByIdAndDelete(artistId);
+    // eliminar albums 
+    // eliminar canciones
+
+    if (!artistRemoved) {
         return res.status(500).send({
             status: "error",
-            message: "El artista no se ha podido actualizar",
+            message: "El artista no se ha podido eliminar",
           });
     }
 
     return res.status(200).send({
         status: "success",
-        artist: artistUpdated,
+        artistRemoved,
       });
 
+  } catch (err) {
+    return res
+      .status(500)
+      .send({ error: "Ha ocurrido un error en la base de datos" });
+  }
 }
 
-export { save, getArtist, list, update };
+export { save, getArtist, list, update, remove };
