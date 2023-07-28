@@ -2,6 +2,8 @@ import { createToken } from "../helpers/jwt.js";
 import { validate } from "../helpers/validate.js";
 import UserModel from "../models/user.model.js";
 import bcrypt from "bcrypt";
+import fs from "fs";
+
 
 async function register(req, res) {
     try {
@@ -200,4 +202,56 @@ try {
   
 }
 
-export { register, login, profile, update };
+async function upload(req, res) {
+
+    // Recoger el fichero de imagen y comprobar que existe
+    if (!req.file) {
+      return res.status(404).send({
+        status: "error",
+        message: "La solicitud requiere una imagen!",
+      });
+    }
+  
+    // Conseguir en nombre del archivo
+    let image = req.file.originalname;
+  
+    // Obtener la extensión del archivo
+    const imageSplit = image.split("\.");
+    const extension = imageSplit[1];
+  
+    // Comprobar la extensión
+    if (extension != "png" && extension != "jpg"
+      && extension != "jpeg" && extension != "gif") {
+        
+        const filePath = req.file.path;
+        // Borrar archivo
+        const fileDeleted = fs.unlinkSync(filePath);
+  
+        return res.status(400).send({
+          status: "error",
+          message: "Extensión del fichero inválida!",
+        });
+  
+      }
+  
+    // Si es correcta, guardar en la BBDD
+    const userUpdated = await UserModel.findByIdAndUpdate(req.user.id, { image: req.file.filename }, { new: true });
+  
+    if (!userUpdated) {
+      return res.status(500).send({ 
+        status: "error",
+        message: "Ha ocurrido un error en la base de datos" 
+      });
+    }
+  
+    return res.status(200).send({
+      status: "success",
+      message: "Imagen subida correctamente!",
+      user: userUpdated,
+      file: req.file
+    });
+  
+  
+  }
+
+export { register, login, profile, update, upload };
