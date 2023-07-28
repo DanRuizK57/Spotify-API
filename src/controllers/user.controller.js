@@ -131,4 +131,73 @@ async function profile(req, res) {
   
 }
 
-export { register, login, profile };
+async function update(req, res) {
+
+try {
+      
+    // Recoger datos usuario identificado
+    const userIdentity = req.user;
+
+    // Recoger info del usuario a actualizar
+    const userToUpdate = req.body;
+
+    // Validar datos nuevos
+    validate(userToUpdate);
+  
+    // Eliminar campos sobrantes
+    delete userToUpdate.iat;
+    delete userToUpdate.exp;
+    delete userToUpdate.role;
+    delete userToUpdate.image;
+  
+    // Comprobar si el usuario existe
+    let existingUsers = await UserModel.find({
+      $or: [
+        { email: userToUpdate.email.toLowerCase() },
+        { nick: userToUpdate.nick }
+      ],
+    });
+  
+    let userIsset = false;
+  
+    existingUsers.forEach(user => {
+      if (user && user._id != userIdentity.id) {
+        userIsset = true;
+      }
+    })
+  
+    if (userIsset) {
+      return res.status(404).send({
+        status: "error",
+        message: "Sólo puedes editar tu propio perfil!",
+      });
+    }
+  
+    if (userToUpdate.password) {
+      // Cifrar contraseña
+      userToUpdate.password = await bcrypt.hashSync(userToUpdate.password, 10);
+    } else {
+      delete userToUpdate.password; // Para q no sobre-escriba en la BBDD
+    }
+  
+    // Buscar y actualizar 
+    let userUpdated = await UserModel.findByIdAndUpdate(userIdentity.id, userToUpdate, { new: true });
+  
+    if (!userUpdated) {
+      return res.status(500).send({ error: "Ha ocurrido un error al actualizar" });
+    }
+  
+    return res.status(200).send({
+      status: "success",
+      message: "El usuario se ha actualizado correctamente!",
+      userUpdated,
+    });
+  
+  
+} catch (err) {
+    return res.status(500).send({ error: "Ha ocurrido un error en la base de datos" });
+}
+  
+}
+
+export { register, login, profile, update };

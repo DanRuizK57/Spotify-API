@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { register, login, profile } from '../controllers/user.controller.js';
+import { register, login, profile, update } from '../controllers/user.controller.js';
 import { auth } from '../middlewares/auth.js';
 // import multer from 'multer';
 
@@ -25,7 +25,7 @@ router.get('/profile/:userId', auth , profile);
 
 // router.get('/list/:page?', auth , list);
 
-// router.put('/update', auth , update);
+router.put('/update', auth , update);
 
 // router.post('/upload', [auth, uploads.single("file0")], upload);
 
