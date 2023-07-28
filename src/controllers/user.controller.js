@@ -1,9 +1,9 @@
+import path from "path";
 import { createToken } from "../helpers/jwt.js";
 import { validate } from "../helpers/validate.js";
 import UserModel from "../models/user.model.js";
 import bcrypt from "bcrypt";
 import fs from "fs";
-
 
 async function register(req, res) {
     try {
@@ -252,6 +252,29 @@ async function upload(req, res) {
     });
   
   
+}
+
+function showAvatar(req, res) {
+  
+    const file = req.params.file;
+  
+    const filePath = "./uploads/avatars/" + file;
+    
+    // Comprobar que existe 
+    fs.stat(filePath, (error, exists) => {
+  
+      if (!exists) {
+        return res.status(404).send({
+          status: "error",
+          message: "No existe la imagen!",
+        });
+      }
+  
+      // Devolver imagen
+      return res.sendFile(path.resolve(filePath));
+  
+    })
+  
   }
 
-export { register, login, profile, update, upload };
+export { register, login, profile, update, upload, showAvatar };

@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { register, login, profile, update, upload } from '../controllers/user.controller.js';
+import { register, login, profile, update, upload, showAvatar } from '../controllers/user.controller.js';
 import { auth } from '../middlewares/auth.js';
 import multer from 'multer';
 
@@ -29,7 +29,7 @@ router.put('/update', auth , update);
 
 router.post('/upload', [auth, uploads.single("file0")], upload);
 
-// router.get('/avatar/:file', showAvatar);
+router.get('/avatar/:file', showAvatar);
 
 // router.get('/counters/:userId', auth , counters);
 
