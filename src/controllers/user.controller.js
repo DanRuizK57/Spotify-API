@@ -1,3 +1,4 @@
+import { createToken } from "../helpers/jwt.js";
 import { validate } from "../helpers/validate.js";
 import UserModel from "../models/user.model.js";
 import bcrypt from "bcrypt";
@@ -49,4 +50,56 @@ async function register(req, res) {
     }
 }
 
-export { register };
+async function login(req, res) {
+    try {
+      // Recoger parámetros body
+      let params = req.body;
+  
+      if (!params.email || !params.password) {
+        return res.status(400).send({
+          status: "error",
+          message: "Faltan datos por enviar",
+        });
+      }
+  
+      // Buscar en la BBDD
+      const user = await UserModel.findOne({ email: params.email })
+        .select("+password +role");
+  
+      if (!user) {
+        return res.status(400).send({
+          status: "error",
+          message: "El usuario no está registrado",
+        });
+      }
+  
+      // Comprobar su contraseña
+      let isSamePassword = bcrypt.compareSync(params.password, user.password);
+  
+      if (!isSamePassword) {
+        return res.status(400).send({
+          status: "error",
+          message: "Las contraseñas no coinciden!",
+        });
+      }
+
+      // Limpiar usuario
+      let identityUser = user.toObject();
+      delete identityUser.password;
+      delete identityUser.role;
+  
+      // Conseguir token
+      const token = createToken(user);
+  
+      return res.status(200).send({
+        status: "success",
+        message: "El usuario se ha logueado correctamente!",
+        user: identityUser,
+        token
+      });
+    } catch (err) {
+      return res.status(500).send({ error: "Ha ocurrido un error en la base de datos" });
+    }
+}
+
+export { register, login };

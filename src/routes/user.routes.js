@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { register } from '../controllers/user.controller.js';
+import { register, login } from '../controllers/user.controller.js';
 // import { auth } from '../middlewares/auth.js';
 // import multer from 'multer';
 
@@ -19,7 +19,7 @@ const router = Router();
 
 router.post('/register', register);
 
-// router.post('/login', login);
+router.post('/login', login);
 
 // router.get('/profile/:userId', auth , profile);
 
