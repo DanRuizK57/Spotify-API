@@ -102,4 +102,33 @@ async function login(req, res) {
     }
 }
 
-export { register, login };
+async function profile(req, res) {
+
+    try {
+      
+        // Recibir el parámetro del ID del usuario por URL
+        const userId = req.params.userId;
+    
+        // Consulta para obtener datos del usuario
+        const user = await UserModel.findById(userId)
+                    .select({ password: 0, role: 0 }); // Para no entregar datos sensibles
+    
+        if (!user) {
+        return res.status(400).send({
+            status: "error",
+            message: "El usuario no existe",
+        });
+        }
+    
+        return res.status(200).send({
+        status: "success",
+        user: user
+        });
+  
+    } catch (err) {
+      return res.status(500).send({ error: "Ha ocurrido un error en la base de datos" });
+    }
+  
+}
+
+export { register, login, profile };

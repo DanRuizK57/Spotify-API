@@ -1,6 +1,6 @@
 import { Router } from 'express';
-import { register, login } from '../controllers/user.controller.js';
-// import { auth } from '../middlewares/auth.js';
+import { register, login, profile } from '../controllers/user.controller.js';
+import { auth } from '../middlewares/auth.js';
 // import multer from 'multer';
 
 // // Configuración de subida
@@ -21,7 +21,7 @@ router.post('/register', register);
 
 router.post('/login', login);
 
-// router.get('/profile/:userId', auth , profile);
+router.get('/profile/:userId', auth , profile);
 
 // router.get('/list/:page?', auth , list);
 
