@@ -89,4 +89,29 @@ async function list(req, res) {
   }
 }
 
-export { save, getArtist, list };
+async function update(req, res) {
+
+    // Obtener ID del artista
+    const artistId = req.params.artistId;
+
+    // Obtener datos body
+    const data = req.body;
+
+    // Buscar y actualizar artista
+    let artistUpdated = await ArtistModel.findByIdAndUpdate(artistId, data, { new: true });
+
+    if (!artistUpdated) {
+        return res.status(500).send({
+            status: "error",
+            message: "El artista no se ha podido actualizar",
+          });
+    }
+
+    return res.status(200).send({
+        status: "success",
+        artist: artistUpdated,
+      });
+
+}
+
+export { save, getArtist, list, update };
