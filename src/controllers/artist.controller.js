@@ -2,6 +2,8 @@ import ArtistModel from "../models/artist.model.js";
 import pagination from "mongoose-pagination";
 import fs from "fs";
 import path from "path";
+import AlbumModel from "../models/album.model.js";
+import SongModel from "../models/song.model.js";
 
 async function save(req, res) {
   try {
@@ -129,8 +131,12 @@ async function remove(req, res) {
     const artistId = req.params.artistId;
 
     const artistRemoved = await ArtistModel.findByIdAndDelete(artistId);
-    // eliminar albums 
-    // eliminar canciones
+
+    const albumRemoved = await AlbumModel.find({ artist: artistId });
+    await AlbumModel.findOneAndDelete(albumRemoved);
+
+    const songRemoved = await SongModel.find({ album: albumRemoved._id });
+    await SongModel.findOneAndDelete(songRemoved);
 
     if (!artistRemoved) {
         return res.status(500).send({
@@ -142,6 +148,8 @@ async function remove(req, res) {
     return res.status(200).send({
         status: "success",
         artistRemoved,
+        albumRemoved,
+        songRemoved
       });
 
   } catch (err) {
