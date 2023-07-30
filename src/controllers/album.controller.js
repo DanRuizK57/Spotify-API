@@ -1,4 +1,6 @@
+import path from "path";
 import AlbumModel from "../models/album.model.js";
+import fs from "fs";
 
 async function save(req, res) {
   try {
@@ -107,4 +109,79 @@ async function update(req, res) {
   }
 }
 
-export { save, getAlbum, list, update };
+async function upload(req, res) {
+
+  // Recoger el fichero de imagen y comprobar que existe
+  if (!req.file) {
+    return res.status(404).send({
+      status: "error",
+      message: "La solicitud requiere una imagen!",
+    });
+  }
+
+  // Conseguir en nombre del archivo
+  let image = req.file.originalname;
+
+  // Obtener la extensión del archivo
+  const imageSplit = image.split("\.");
+  const extension = imageSplit[1];
+
+  // Comprobar la extensión
+  if (extension != "png" && extension != "jpg"
+    && extension != "jpeg" && extension != "gif") {
+      
+      const filePath = req.file.path;
+      // Borrar archivo
+      const fileDeleted = fs.unlinkSync(filePath);
+
+      return res.status(400).send({
+        status: "error",
+        message: "Extensión del fichero inválida!",
+      });
+
+    }
+
+  // Si es correcta, guardar en la BBDD
+  const albumUpdated = await AlbumModel.findByIdAndUpdate(req.params.albumId, { image: req.file.filename }, { new: true });
+
+  if (!albumUpdated) {
+    return res.status(500).send({ 
+      status: "error",
+      message: "Ha ocurrido un error en la base de datos" 
+    });
+  }
+
+  return res.status(200).send({
+    status: "success",
+    message: "Imagen subida correctamente!",
+    album: albumUpdated,
+    file: req.file
+  });
+
+
+}
+
+function showImage(req, res) {
+
+  const file = req.params.file;
+
+  const filePath = "./uploads/albums/" + file;
+  
+  // Comprobar que existe 
+  fs.stat(filePath, (error, exists) => {
+
+    if (!exists) {
+      return res.status(404).send({
+        status: "error",
+        message: "No existe la imagen!",
+      });
+    }
+
+    // Devolver imagen
+    return res.sendFile(path.resolve(filePath));
+
+  })
+
+}
+
+export { save, getAlbum, list, update, upload, showImage };

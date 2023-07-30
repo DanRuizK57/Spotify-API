@@ -232,6 +232,6 @@ function showImage(req, res) {
   
     })
   
-  }
+}
 
 export { save, getArtist, list, update, remove, upload, showImage };
