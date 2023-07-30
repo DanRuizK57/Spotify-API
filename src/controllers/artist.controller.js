@@ -133,10 +133,14 @@ async function remove(req, res) {
     const artistRemoved = await ArtistModel.findByIdAndDelete(artistId);
 
     const albumRemoved = await AlbumModel.find({ artist: artistId });
-    await AlbumModel.findOneAndDelete(albumRemoved);
 
-    const songRemoved = await SongModel.find({ album: albumRemoved._id });
-    await SongModel.findOneAndDelete(songRemoved);
+    albumRemoved.forEach(async album => {
+
+      const songRemoved = await SongModel.find({ album: album._id });
+      await SongModel.findOneAndDelete(songRemoved);
+
+      await AlbumModel.findOneAndRemove(album);
+    })
 
     if (!artistRemoved) {
         return res.status(500).send({
@@ -147,9 +151,7 @@ async function remove(req, res) {
 
     return res.status(200).send({
         status: "success",
-        artistRemoved,
-        albumRemoved,
-        songRemoved
+        artistRemoved
       });
 
   } catch (err) {
