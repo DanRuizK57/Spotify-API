@@ -158,7 +158,6 @@ async function upload(req, res) {
     file: req.file
   });
 
-
 }
 
 function showImage(req, res) {
