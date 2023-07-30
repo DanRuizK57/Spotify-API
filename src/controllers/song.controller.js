@@ -117,4 +117,31 @@ async function update(req, res) {
   }
 }
 
-export { save, getSong, list, update };
+async function remove(req, res) {
+  try {
+
+    // Obtener ID de la canción
+    const songId = req.params.songId;
+
+    const songRemoved = await SongModel.findByIdAndRemove(songId);
+
+    if (!songRemoved) {
+        return res.status(500).send({
+            status: "error",
+            message: "La canción no se ha podido eliminar",
+        });
+    }
+
+    return res.status(200).send({
+        status: "success",
+        song: songRemoved
+      });
+
+  } catch (err) {
+    return res
+      .status(500)
+      .send({ error: "Ha ocurrido un error en la base de datos" });
+  }
+}
+
+export { save, getSong, list, update, remove };
