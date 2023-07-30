@@ -1,6 +1,7 @@
 import path from "path";
 import AlbumModel from "../models/album.model.js";
 import fs from "fs";
+import SongModel from "../models/song.model.js";
 
 async function save(req, res) {
   try {
@@ -183,4 +184,35 @@ function showImage(req, res) {
 
 }
 
-export { save, getAlbum, list, update, upload, showImage };
+async function remove(req, res) {
+  try {
+
+    // Obtener ID del album
+    const albumId = req.params.albumId;
+
+    const albumRemoved = await AlbumModel.findByIdAndDelete(albumId);
+
+    const songsRemoved = await SongModel.find({ album: albumId });
+      await SongModel.findOneAndDelete(songsRemoved);
+
+    if (!albumRemoved) {
+        return res.status(500).send({
+            status: "error",
+            message: "El álbum no se ha podido eliminar",
+          });
+    }
+
+    return res.status(200).send({
+        status: "success",
+        albumRemoved,
+        songsRemoved
+      });
+
+  } catch (err) {
+    return res
+      .status(500)
+      .send({ error: "Ha ocurrido un error en la base de datos" });
+  }
+}
+
+export { save, getAlbum, list, update, upload, showImage, remove };

@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { save, getAlbum, list, update, upload, showImage } from '../controllers/album.controller.js';
+import { save, getAlbum, list, update, upload, showImage, remove } from '../controllers/album.controller.js';
 import { auth } from '../middlewares/auth.js';
 import multer from 'multer';
 
@@ -28,5 +28,7 @@ router.put('/update/:albumId', auth, update);
 router.post('/upload/:albumId', [auth, uploads.single("file0")], upload);
 
 router.get('/image/:file', showImage);
+
+router.delete('/remove/:albumId', auth, remove);
 
 export default router;
