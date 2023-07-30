@@ -50,17 +50,18 @@ async function getAlbum(req, res) {
 
 async function list(req, res) {
   try {
-
     // Obtener ID del artista
     const artistId = req.params.artistId;
 
-    const albums = await AlbumModel.find({ artist: artistId })
-      .populate("artist");
+    // Buscar álbumes en la BBDD
+    const albums = await AlbumModel.find({ artist: artistId }).populate(
+      "artist"
+    );
 
     if (!albums) {
       return res.status(404).send({
         status: "error",
-        message: "No se encontraron álbums de este artista",
+        message: "No se encontraron álbumes de este artista",
       });
     }
 
@@ -75,4 +76,35 @@ async function list(req, res) {
   }
 }
 
-export { save, getAlbum, list };
+async function update(req, res) {
+  try {
+    // Obtener ID del álbum
+    const albumId = req.params.albumId;
+
+    // Obtener datos a cambiar
+    const data = req.body;
+
+    // Buscar álbum en la BBDD
+    let albumToUpdate = await AlbumModel.findByIdAndUpdate(albumId, data, {
+      new: true,
+    });
+
+    if (!albumToUpdate) {
+      return res.status(404).send({
+        status: "error",
+        message: "No se encontró el álbum",
+      });
+    }
+
+    return res.status(200).send({
+      status: "success",
+      album: albumToUpdate,
+    });
+  } catch (err) {
+    return res
+      .status(500)
+      .send({ error: "Ha ocurrido un error en la base de datos" });
+  }
+}
+
+export { save, getAlbum, list, update };
